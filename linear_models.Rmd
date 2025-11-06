@@ -1,0 +1,89 @@
+---
+title: "linear_models"
+author: "Nicole Criscuolo"
+date: "2025-11-06"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(p8105.datasets)
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+Load NYC airbnb data.
+
+```{r}
+data(nyc_airbnb)
+```
+
+Look at data/ do some cleaning.
+
+```{r}
+nyc_airbnb = 
+  nyc_airbnb |> 
+  mutate(
+    stars = review_scores_location / 2
+  ) |> 
+  rename(borough = neighbourhood_group) |> 
+  filter(borough != "Staten Island") |> 
+  select(price, stars, borough, room_type, neighbourhood)
+```
+
+Do regression!!!
+
+```{r}
+fit = lm(price ~ stars + borough, data = nyc_airbnb)
+```
+
+Do some additional cleaning then refit.
+
+```{r}
+nyc_airbnb =
+  nyc_airbnb |> 
+  mutate(
+    borough = fct_infreq(borough),
+    room_type = fct_infreq(room_type))
+
+fit = lm(price ~ stars + borough, data = nyc_airbnb)
+```
+
+Look at `lm` stuff.
+```{r, eval = FALSE}
+summary(fit)
+names(summary(fit))
+summary(fit)[["coefficients"]]
+summary(fit)[["df"]]
+
+fitted.values(fit)
+```
+
+```{r}
+fit |> 
+  broom::tidy() |> 
+  mutate(
+    term = str_replace(term, "borough", "Borough: ")
+  ) |> 
+  select(term, estimate, p.value) |> 
+  knitr::kable(digits = 3)
+
+fit |> 
+  broom::glance()
+```
+
+
+
